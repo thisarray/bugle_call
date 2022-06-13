@@ -3,6 +3,11 @@
 import json
 import unittest
 
+# High C (C6) is seldomly used
+# High B flat (B6b) is only found in a few marches
+BUGLE_NOTES = ('C4', 'G4', 'C5', 'E5', 'G5')
+"""Tuple of string notes that can be played by a bugle."""
+
 def bpm_to_duration(bpm):
     """Return a duration in seconds from bpm beats per minute."""
     if not isinstance(bpm, int):
@@ -12,6 +17,16 @@ def bpm_to_duration(bpm):
     return (60.0 / bpm)
 
 class _UnitTest(unittest.TestCase):
+    def test_BUGLE_NOTES(self):
+        """Test the notes that can be played by a bugle."""
+        for value in ['A4', 'A5', 'B4', 'B5', 'D4', 'D5', 'F4', 'F5']:
+            self.assertNotIn(value, BUGLE_NOTES)
+        self.assertIn('C4', BUGLE_NOTES)
+        self.assertIn('G4', BUGLE_NOTES)
+        self.assertIn('C5', BUGLE_NOTES)
+        self.assertIn('E5', BUGLE_NOTES)
+        self.assertIn('G5', BUGLE_NOTES)
+
     def test_bpm_to_duration(self):
         """Test converting beats per minute to duration."""
         for value in [None, 42.0, '', []]:
@@ -44,18 +59,28 @@ if __name__ == '__main__':
         note_array = []
         i = 0
         while i < len(args.notes):
-            note = args.notes[i:i+2]
-            note_array.append([note.upper(), duration])
+            note = args.notes[i:i+2].upper()
+            if note not in BUGLE_NOTES:
+                parser.error('Invalid note: {}'.format(note))
+            note_array.append([note, duration])
             i += 2
 
         # Print the durations
         durations = []
-        for divisor in [1, 2, 4, 8, 16, 32]:
+        for label, divisor in [
+            ('Whole', 0.25),
+            ('Half', 0.5),
+            ('Quarter', 1.0),
+            ('Eighth', 2.0),
+            ('Sixteenth', 4.0),
+            ('Thirty-second', 8.0)]:
+            padded_label = label.rjust(13)
             length = duration / divisor
-            durations.append((str(divisor), length))
-            durations.append((str(divisor) + '.5', 1.5 * length))
-        for divisor, length in durations:
-            print('{}\t{}'.format(divisor, length))
+            durations.append('{}\t{}'.format(padded_label + ' ', length))
+            durations.append('{}\t{}'.format(padded_label + '.', 1.5 * length))
+            durations.append('{}\t{}'.format(padded_label + '3', length / 3))
+        for d in durations:
+            print(d)
         print()
 
         # Print the array of tones
