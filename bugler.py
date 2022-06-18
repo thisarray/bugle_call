@@ -5,7 +5,7 @@ import unittest
 
 # High C (C6) is seldomly used
 # High B flat (B6b) is only found in a few marches
-BUGLE_NOTES = ('C4', 'G4', 'C5', 'E5', 'G5')
+BUGLE_NOTES = ('C4', 'G4', 'C5', 'E5', 'G5', 'C6')
 """Tuple of string notes that can be played by a bugle."""
 
 def bpm_to_duration(bpm):
@@ -19,13 +19,11 @@ def bpm_to_duration(bpm):
 class _UnitTest(unittest.TestCase):
     def test_BUGLE_NOTES(self):
         """Test the notes that can be played by a bugle."""
+        for value in BUGLE_NOTES:
+            self.assertEqual(value.upper(), value)
+            self.assertIn(value.upper(), BUGLE_NOTES)
         for value in ['A4', 'A5', 'B4', 'B5', 'D4', 'D5', 'F4', 'F5']:
             self.assertNotIn(value, BUGLE_NOTES)
-        self.assertIn('C4', BUGLE_NOTES)
-        self.assertIn('G4', BUGLE_NOTES)
-        self.assertIn('C5', BUGLE_NOTES)
-        self.assertIn('E5', BUGLE_NOTES)
-        self.assertIn('G5', BUGLE_NOTES)
 
     def test_bpm_to_duration(self):
         """Test converting beats per minute to duration."""
@@ -41,17 +39,37 @@ class _UnitTest(unittest.TestCase):
 
 if __name__ == '__main__':
     import argparse
+    import json
+    import os.path
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('-t', '--tempo', type=int, default=60,
-                        help='integer tempo of the bugle call')
-    parser.add_argument('notes', nargs='?', default='',
-                        help='string of notes in the bugle call')
+    parser.add_argument(
+        '-c', '--check', default='',
+        help='check the bugle calls in the JSON file at path')
+    parser.add_argument(
+        '-t', '--tempo', type=int, default=60,
+        help='integer number of quarter notes per minute in the bugle call')
+    parser.add_argument(
+        'notes', nargs='?', default='',
+        help='string of notes in the bugle call')
     args = parser.parse_args()
 
-    if len(args.notes) <= 0:
-        suite = unittest.defaultTestLoader.loadTestsFromTestCase(_UnitTest)
-        unittest.TextTestRunner(verbosity=2).run(suite)
-    else:
+    if os.path.isfile(args.check):
+        with open(args.check, 'r', encoding='utf-8') as f:
+            json_data = json.load(f)
+        print('Found {} bugle calls'.format(len(json_data)))
+        for name, value in json_data.items():
+            for note in value:
+                length = len(note)
+                if (length < 2) or (3 < length):
+                    print('Invalid note array in {}!'.format(name))
+                    continue
+                if note[0] not in BUGLE_NOTES:
+                    print('Invalid note in {}: {}'.format(name, note[0]))
+                if (note[1] < 0) or (30 < note[1]):
+                    print('Invalid duration in {}: {}'.format(name, note[1]))
+                if (length == 3) and ((note[2] < 0) or (10 < note[2])):
+                    print('Invalid rest in {}: {}'.format(name, note[2]))
+    elif len(args.notes) > 0:
         if (len(args.notes) % 2) != 0:
             parser.error('String of notes must have an even length.')
 
@@ -89,3 +107,6 @@ if __name__ == '__main__':
             print('    ' + json.dumps(
                 note, separators=(', ', ': '), sort_keys=True) + ',')
         print('  ]')
+    else:
+        suite = unittest.defaultTestLoader.loadTestsFromTestCase(_UnitTest)
+        unittest.TextTestRunner(verbosity=2).run(suite)
