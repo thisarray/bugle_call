@@ -1416,7 +1416,7 @@ function reset() {
   for (let name of Object.keys(bugleCalls)) {
     count = bugleCalls[name].length;
     length = getLength(bugleCalls[name]);
-    markup.push(`  <li><label><input type="radio" name="callName" value="${ name }">${ name } (${ count } notes, ${ length.toFixed(2) } seconds)</label></li>`);
+    markup.push(`  <li><label><input type="radio" name="callName" value="${ name }">${ name } (${ count } notes, ${ length.toFixed(2) } seconds ${ '*'.repeat(Math.ceil(count / length)) })</label></li>`);
   }
   markup.push('</ol>');
   document.querySelector('#manifest').innerHTML = markup.join('\n');
@@ -1426,26 +1426,23 @@ function reset() {
  * Play the current note and schedule the next note to play.
  */
 function play() {
-  let [note, duration, gap=GAP] = current.shift();
-  if (current.length > 0) {
-    if (gap <= 0) {
-      clock.schedule(play, duration);
-    }
-    else {
-      // If gap is positive, then there is a rest after this note
-      clock.schedule(play, duration + gap);
-    }
-  }
-  else {
-    current = null;
+  if (!Array.isArray(current)) {
     playButton.disabled = false;
+    return;
+  }
+
+  let [note, duration, gap=GAP] = current.shift();
+  if (current.length <= 0) {
+    current = null;
   }
 
   if (gap <= 0) {
+    clock.schedule(play, duration);
     tone.play(note, duration + gap);
   }
   else {
     // If gap is positive, then there is a rest after this note
+    clock.schedule(play, duration + gap);
     tone.play(note, duration);
   }
 }
@@ -1454,7 +1451,7 @@ window.addEventListener('load', (event) => {
   reset();
 });
 form.addEventListener('submit', (event) => {
-  if (current == null) {
+  if (!Array.isArray(current)) {
     // If a bugle call is not currently playing
     playButton.disabled = true;
     current = bugleCalls[form.callName.value].slice();
