@@ -3748,6 +3748,11 @@ The game screen appears here if your browser supports the Canvas API.
 
 <p>Press the indicated key and SPACE BAR at the <em>SAME TIME</em> in time with the counter to play the note.</p>
 
+<p>Use the arrow keys, PAGE UP, or PAGE DOWN to scroll through the different calls.</p>
+
+<p>The number of "*" indicates the difficulty of the call.
+The more "*" the more difficult the call is to play.</p>
+
 <h2>Attribution</h2>
 
 <p>Images licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/legalcode">Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported</a>.</p>
@@ -3799,12 +3804,13 @@ const DETECT_TOP = 470;
  */
 const DETECT_BOTTOM = 545;
 
-let bugleCalls, name, length, difficulty, elapsed, score, counters, shine;
+let bugleCalls, names, index, name, length, difficulty, elapsed, score, counters, shine;
 
 /*
- * Create the elements to play the bugle call named name.
+ * Create the elements to play the bugle call at index.
  */
 function reset() {
+  name = names[index];
   length = OFFSET;
   elapsed = 0;
   score = 0;
@@ -3885,9 +3891,6 @@ function draw() {
       fontsize: 40
     });
   }
-
-  screen.draw.line([0, DETECT_TOP], [WIDTH, DETECT_TOP], 'white', 2);
-  screen.draw.line([0, DETECT_BOTTOM], [WIDTH, DETECT_BOTTOM], 'white', 2);
 }
 
 function update(dt) {
@@ -3910,6 +3913,22 @@ function on_key_down(key) {
         }
       }
     }
+  }
+  else if (key === keys.PAGEUP) {
+    index = (index + names.length - 10) % names.length;
+    reset();
+  }
+  else if ((key === keys.LEFT) || (key === keys.UP)) {
+    index = (index + names.length - 1) % names.length;
+    reset();
+  }
+  else if ((key === keys.RIGHT) || (key === keys.DOWN)) {
+    index = (index + 1) % names.length;
+    reset();
+  }
+  else if (key === keys.PAGEDOWN) {
+    index = (index + 10) % names.length;
+    reset();
   }
 }
 
@@ -3943,9 +3962,11 @@ function noteCorrect(note, duration, gap) {
 }
 
 window.addEventListener('load', (event) => {
-  // Parse the notes of the bugle calls from the JSON.
+  // Parse the notes of the bugle calls from the JSON
   bugleCalls = JSON.parse(document.querySelector('#calls').textContent);
-  name = 'Reveille';
+  names = Object.keys(bugleCalls);
+  names.sort();
+  index = names.indexOf('Taps');
 
   images.LOAD('#imageLoader img');
   reset();
