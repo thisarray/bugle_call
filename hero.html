@@ -3968,9 +3968,7 @@ window.addEventListener('load', (event) => {
   names.sort();
   index = names.indexOf('Taps');
 
-  images.LOAD('#imageLoader img');
-  reset();
-  screen.set_mode('#screen', '#reset', '#pause');
+  screen.init();
 });
 </script>
 </body>

@@ -3753,13 +3753,13 @@ As a work of the United States government, it is not copyrighted.</p>
 </main>
 
 <script>
+const form = document.querySelector('#playlist');
+const playButton = document.querySelector('#play');
+
 /*
  * Gap in seconds after each note before the next note.
  */
 const GAP = -0.025;
-
-const form = document.querySelector('#playlist');
-const playButton = document.querySelector('#play');
 
 let bugleCalls, current;
 
@@ -3825,6 +3825,7 @@ function play() {
 }
 
 window.addEventListener('load', (event) => {
+  screen.init();
   reset();
 });
 form.addEventListener('submit', (event) => {
